@@ -54,6 +54,18 @@ def init_db():
     )
     """)
     
+    # Cloned voices table
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS cloned_voices (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER,
+        voice_id TEXT UNIQUE,
+        name TEXT,
+        created_at TEXT,
+        FOREIGN KEY (user_id) REFERENCES users (telegram_id)
+    )
+    """)
+    
     conn.commit()
     conn.close()
 
@@ -101,10 +113,18 @@ def upgrade_subscription(telegram_id, sub_type):
     now = datetime.now()
     until = (now + timedelta(days=30)).strftime("%Y-%m-%d %H:%M:%S")
     
-    # Limits: Starter = 30k chars, Pro = 100k chars
-    char_limit = 30000 if sub_type == 'starter' else 100000
+    # Limits mapping for Starter, Creator, Pro, Scale, Business
+    limits = {
+        'free': 5000,
+        'starter': 30000,
+        'creator': 100000,
+        'pro': 250000,
+        'scale': 500000,
+        'business': 1000000
+    }
+    
+    char_limit = limits.get(sub_type, 5000)
     if sub_type == 'free':
-        char_limit = 5000
         until = None
         
     conn.execute(
@@ -171,3 +191,32 @@ def mark_payment_paid(invoice_id):
         return pay["user_id"]
     conn.close()
     return None
+
+def add_cloned_voice(telegram_id, voice_id, name):
+    conn = get_db_connection()
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    success = False
+    try:
+        conn.execute(
+            "INSERT INTO cloned_voices (user_id, voice_id, name, created_at) VALUES (?, ?, ?, ?)",
+            (telegram_id, voice_id, name, now)
+        )
+        conn.commit()
+        success = True
+    except sqlite3.IntegrityError:
+        success = False
+    conn.close()
+    return success
+
+def get_cloned_voices(telegram_id):
+    conn = get_db_connection()
+    rows = conn.execute("SELECT * FROM cloned_voices WHERE user_id = ? ORDER BY id DESC", (telegram_id,)).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+def get_cloned_voices_count(telegram_id):
+    conn = get_db_connection()
+    row = conn.execute("SELECT COUNT(*) FROM cloned_voices WHERE user_id = ?", (telegram_id,)).fetchone()
+    count = row[0] if row else 0
+    conn.close()
+    return count

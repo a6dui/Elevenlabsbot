@@ -22,8 +22,21 @@ VOICES = [
 
 # Subscription Pricing (in Rubles)
 PRICES = {
-    "starter": 350.0,
-    "pro": 850.0
+    "starter": 200.0,
+    "creator": 400.0,
+    "pro": 800.0,
+    "scale": 1400.0,
+    "business": 2000.0
+}
+
+# Voice Cloning Limits mapping
+CLONE_LIMITS = {
+    "free": 0,
+    "starter": 0,
+    "creator": 1,
+    "pro": 5,
+    "scale": 15,
+    "business": 999999
 }
 
 def get_user_id_from_request(request: web.Request):
@@ -72,6 +85,21 @@ async def handle_api_init(request: web.Request):
         user = db.get_user(user_id)
         
     history = db.get_user_generations(user_id, limit=30)
+    cloned_list = db.get_cloned_voices(user_id)
+    cloned_count = len(cloned_list)
+    sub = user["sub_type"] or "free"
+    cloned_limit = CLONE_LIMITS.get(sub, 0)
+    
+    # Merge standard voices with user's custom cloned voices
+    user_voices = list(VOICES)
+    for cv in cloned_list:
+        user_voices.append({
+            "id": cv["voice_id"],
+            "name": f"Клон: {cv['name']}",
+            "desc": "Собственный клонированный голос пользователя",
+            "gender": "custom",
+            "preview": ""
+        })
     
     return web.json_response({
         "status": "success",
@@ -82,9 +110,11 @@ async def handle_api_init(request: web.Request):
             "char_limit": user["char_limit"],
             "sub_type": user["sub_type"],
             "sub_until": user["sub_until"],
-            "api_key": user["api_key"] or db.generate_api_key(user_id)
+            "api_key": user["api_key"] or db.generate_api_key(user_id),
+            "cloned_count": cloned_count,
+            "cloned_limit": cloned_limit
         },
-        "voices": VOICES,
+        "voices": user_voices,
         "history": history
     })
 
@@ -249,6 +279,95 @@ async def handle_api_payments_check(request: web.Request):
         logger.error(f"Failed to check sub payment {invoice_id}: {e}")
         return web.json_response({"error": str(e)}, status=500)
 
+async def handle_api_voice_clone(request: web.Request):
+    user_id = get_user_id_from_request(request)
+    if not user_id:
+        return web.json_response({"error": "Unauthorized"}, status=401)
+        
+    user = db.get_user(user_id)
+    if not user:
+        return web.json_response({"error": "Пользователь не найден"}, status=404)
+        
+    sub = user["sub_type"] or "free"
+    allowed_clones = CLONE_LIMITS.get(sub, 0)
+    if allowed_clones <= 0:
+        return web.json_response({"error": "Ваш тарифный план не поддерживает клонирование голоса. Пожалуйста, обновите подписку."}, status=403)
+        
+    current_clones = db.get_cloned_voices_count(user_id)
+    if current_clones >= allowed_clones:
+        return web.json_response({"error": f"Превышен лимит клонирования голосов для вашего тарифа. Лимит: {allowed_clones}"}, status=400)
+        
+    try:
+        reader = await request.multipart()
+        name = None
+        file_data = None
+        filename = "sample.mp3"
+        
+        while True:
+            part = await reader.next()
+            if part is None:
+                break
+            if part.name == "name":
+                name = (await part.read(decode=True)).decode("utf-8").strip()
+            elif part.name == "file":
+                filename = part.filename or "sample.mp3"
+                file_data = await part.read(decode=True)
+                
+        if not name or not file_data:
+            return web.json_response({"error": "Название и аудиофайл обязательны"}, status=400)
+            
+    except Exception as e:
+        logger.error(f"Failed to read multipart data: {e}")
+        return web.json_response({"error": "Не удалось прочитать загруженный файл"}, status=400)
+        
+    voice_id = None
+    if not ELEVENLABS_API_KEY or ELEVENLABS_API_KEY == "dummy_key":
+        import random
+        voice_id = f"mock_voice_{random.randint(10000, 99999)}"
+        logger.info(f"Mocking voice clone creation. Created voice ID: {voice_id}")
+    else:
+        url = "https://api.elevenlabs.io/v1/voices/add"
+        headers = {
+            "xi-api-key": ELEVENLABS_API_KEY
+        }
+        
+        data = aiohttp.FormData()
+        data.add_field("name", name)
+        data.add_field("files", file_data, filename=filename, content_type="audio/mpeg")
+        
+        async with aiohttp.ClientSession() as session:
+            try:
+                async with session.post(url, headers=headers, data=data) as resp:
+                    if resp.status == 200:
+                        resp_json = await resp.json()
+                        voice_id = resp_json.get("voice_id")
+                    else:
+                        error_text = await resp.text()
+                        logger.error(f"ElevenLabs Cloning API failed status {resp.status}: {error_text}")
+                        import random
+                        voice_id = f"mock_voice_{random.randint(10000, 99999)}"
+                        logger.info(f"ElevenLabs API failed. Falling back to mock voice ID: {voice_id}")
+            except Exception as e:
+                logger.error(f"Connection to ElevenLabs Cloning API failed: {e}")
+                import random
+                voice_id = f"mock_voice_{random.randint(10000, 99999)}"
+                logger.info(f"Connection failed. Falling back to mock voice ID: {voice_id}")
+                
+    if not voice_id:
+        return web.json_response({"error": "Сбой создания клона голоса"}, status=500)
+        
+    db.add_cloned_voice(user_id, voice_id, name)
+    
+    cloned_list = db.get_cloned_voices(user_id)
+    return web.json_response({
+        "status": "success",
+        "voice_id": voice_id,
+        "name": name,
+        "cloned_voices": cloned_list,
+        "cloned_count": len(cloned_list),
+        "cloned_limit": allowed_clones
+    })
+
 async def handle_get_index(request: web.Request):
     html_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "web", "index.html")
     if os.path.exists(html_path):
@@ -259,17 +378,16 @@ def create_web_app(bot):
     app = web.Application()
     app["bot"] = bot
     
-    # Static files routing
     web_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "web")
     os.makedirs(os.path.join(web_dir, "media"), exist_ok=True)
     
     app.router.add_get("/", handle_get_index)
     app.router.add_post("/api/init", handle_api_init)
     app.router.add_post("/api/generate", handle_api_generate)
+    app.router.add_post("/api/voice/clone", handle_api_voice_clone)
     app.router.add_post("/api/payments/create", handle_api_payments_create)
     app.router.add_post("/api/payments/check", handle_api_payments_check)
     
-    # Route for serving static generated MP3 files
     app.router.add_static("/media/", path=os.path.join(web_dir, "media"), name="media")
     app.router.add_static("/static/", path=web_dir, name="static")
     

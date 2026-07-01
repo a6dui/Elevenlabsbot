@@ -430,9 +430,15 @@
 
         /* --- Pricing Section --- */
         .pricing-list {
-            display: flex;
-            flex-direction: column;
+            display: grid;
+            grid-template-columns: 1fr;
             gap: 20px;
+        }
+
+        @media(min-width: 600px) {
+            .pricing-list {
+                grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            }
         }
 
         .pricing-card {
@@ -673,12 +679,12 @@
             <div class="pricing-list">
                 <!-- Starter Plan -->
                 <div class="pricing-card">
-                    <div class="pricing-title">Starter Plan</div>
-                    <div class="pricing-price">350 ₽<span> / мес</span></div>
+                    <div class="pricing-title">Starter</div>
+                    <div class="pricing-price">200 ₽<span> / мес</span></div>
                     <div class="pricing-features">
                         <div class="pricing-feature-item">
                             <i data-lucide="check-circle-2"></i>
-                            <span>30 000 символов озвучки в месяц</span>
+                            <span>30 000 символов в месяц</span>
                         </div>
                         <div class="pricing-feature-item">
                             <i data-lucide="check-circle-2"></i>
@@ -686,35 +692,102 @@
                         </div>
                         <div class="pricing-feature-item">
                             <i data-lucide="check-circle-2"></i>
-                            <span>Ускоренное время генерации</span>
+                            <span>Быстрое время генерации</span>
                         </div>
                     </div>
-                    <button class="btn-pricing-buy" onclick="buySubscription('starter')">Активировать за 350₽</button>
+                    <button class="btn-pricing-buy" onclick="buySubscription('starter')">Активировать за 200₽</button>
+                </div>
+
+                <!-- Creator Plan -->
+                <div class="pricing-card">
+                    <div class="pricing-title">Creator</div>
+                    <div class="pricing-price">400 ₽<span> / мес</span></div>
+                    <div class="pricing-features">
+                        <div class="pricing-feature-item">
+                            <i data-lucide="check-circle-2"></i>
+                            <span>100 000 символов в месяц</span>
+                        </div>
+                        <div class="pricing-feature-item">
+                            <i data-lucide="check-circle-2"></i>
+                            <span>1 клон собственного голоса</span>
+                        </div>
+                        <div class="pricing-feature-item">
+                            <i data-lucide="check-circle-2"></i>
+                            <span>Мультиязычная модель озвучки</span>
+                        </div>
+                    </div>
+                    <button class="btn-pricing-buy" onclick="buySubscription('creator')">Активировать за 400₽</button>
                 </div>
 
                 <!-- Pro Plan -->
                 <div class="pricing-card premium">
-                    <div class="pricing-title">Pro Plan</div>
-                    <div class="pricing-price">850 ₽<span> / мес</span></div>
+                    <div class="pricing-title">Pro</div>
+                    <div class="pricing-price">800 ₽<span> / мес</span></div>
                     <div class="pricing-features">
                         <div class="pricing-feature-item">
                             <i data-lucide="check-circle-2"></i>
-                            <span>100 000 символов озвучки в месяц</span>
+                            <span>250 000 символов в месяц</span>
                         </div>
                         <div class="pricing-feature-item">
                             <i data-lucide="check-circle-2"></i>
-                            <span>Клонирование собственного голоса</span>
+                            <span>5 клонов собственного голоса</span>
                         </div>
                         <div class="pricing-feature-item">
                             <i data-lucide="check-circle-2"></i>
-                            <span>Все голоса ElevenLabs</span>
+                            <span>Все премиум-голоса ElevenLabs</span>
                         </div>
                         <div class="pricing-feature-item">
                             <i data-lucide="check-circle-2"></i>
-                            <span>Максимальный приоритет обработки</span>
+                            <span>Высокий приоритет обработки</span>
                         </div>
                     </div>
-                    <button class="btn-pricing-buy" onclick="buySubscription('pro')">Активировать за 850₽</button>
+                    <button class="btn-pricing-buy" onclick="buySubscription('pro')">Активировать за 800₽</button>
+                </div>
+
+                <!-- Scale Plan -->
+                <div class="pricing-card">
+                    <div class="pricing-title">Scale</div>
+                    <div class="pricing-price">1400 ₽<span> / мес</span></div>
+                    <div class="pricing-features">
+                        <div class="pricing-feature-item">
+                            <i data-lucide="check-circle-2"></i>
+                            <span>500 000 символов в месяц</span>
+                        </div>
+                        <div class="pricing-feature-item">
+                            <i data-lucide="check-circle-2"></i>
+                            <span>15 клонов собственного голоса</span>
+                        </div>
+                        <div class="pricing-feature-item">
+                            <i data-lucide="check-circle-2"></i>
+                            <span>Профессиональное качество</span>
+                        </div>
+                    </div>
+                    <button class="btn-pricing-buy" onclick="buySubscription('scale')">Активировать за 1400₽</button>
+                </div>
+
+                <!-- Business Plan -->
+                <div class="pricing-card">
+                    <div class="pricing-title">Business</div>
+                    <div class="pricing-price">2000 ₽<span> / мес</span></div>
+                    <div class="pricing-features">
+                        <div class="pricing-feature-item">
+                            <i data-lucide="check-circle-2"></i>
+                            <span>1 000 000 символов в месяц</span>
+                        </div>
+                        <div class="pricing-feature-item">
+                            <i data-lucide="check-circle-2"></i>
+                            <span>Безлимитное клонирование</span>
+                        </div>
+                        <div class="pricing-feature-item">
+                            <i data-lucide="check-circle-2"></i>
+                            <span>Персональный B2B API Ключ</span>
+                        </div>
+                        <div class="pricing-feature-item">
+                            <i data-lucide="check-circle-2"></i>
+                            <span>Максимальный приоритет</span>
+                        </div>
+                    </div>
+                    <button class="btn-pricing-buy" onclick="buySubscription('business')">Активировать за 2000₽</button>
                 </div>
             </div>
         </section>
@@ -811,9 +884,18 @@
             if (state.user.sub_type === 'starter') {
                 tierName = 'Starter';
                 badgeName = 'Starter';
+            } else if (state.user.sub_type === 'creator') {
+                tierName = 'Creator';
+                badgeName = 'Creator';
             } else if (state.user.sub_type === 'pro') {
                 tierName = 'Pro Plan';
                 badgeName = 'Pro';
+            } else if (state.user.sub_type === 'scale') {
+                tierName = 'Scale Plan';
+                badgeName = 'Scale';
+            } else if (state.user.sub_type === 'business') {
+                tierName = 'Business Plan';
+                badgeName = 'Business';
             }
             
             document.getElementById('user-tier').textContent = tierName;
@@ -824,7 +906,10 @@
             if (!state.user) return;
             let maxLimit = 5000;
             if (state.user.sub_type === 'starter') maxLimit = 30000;
-            if (state.user.sub_type === 'pro') maxLimit = 100000;
+            if (state.user.sub_type === 'creator') maxLimit = 100000;
+            if (state.user.sub_type === 'pro') maxLimit = 250000;
+            if (state.user.sub_type === 'scale') maxLimit = 500000;
+            if (state.user.sub_type === 'business') maxLimit = 1000000;
             
             state.maxCharLimit = maxLimit;
             
@@ -1087,11 +1172,21 @@
 
         function renderCloningPortal() {
             const cloningWorkspace = document.getElementById('cloning-workspace');
-            if (state.user.sub_type === 'pro') {
+            const subType = state.user.sub_type;
+            const hasCloning = ['creator', 'pro', 'scale', 'business'].includes(subType);
+            
+            if (hasCloning) {
+                const count = state.user.cloned_count || 0;
+                const limit = state.user.cloned_limit || 0;
+                const limitText = subType === 'business' ? 'Безлимитно' : limit;
+                
                 cloningWorkspace.innerHTML = `
                     <div class="section-label">Создать клон голоса</div>
                     <div style="font-size:12px; line-height:1.5; color:var(--text-secondary); margin-bottom:15px;">
                         Загрузите аудиозапись (длительностью около 1 минуты) человека, чей голос вы хотите клонировать. Голос должен быть чистым, без посторонних шумов и музыки.
+                    </div>
+                    <div style="font-size:13px; color:var(--text-primary); margin-bottom:15px; font-weight:500;">
+                        Использовано клонов: <span style="color:var(--accent-color);">${count}</span> из ${limitText}
                     </div>
                     <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:20px;">
                         <input type="text" id="clone-name" placeholder="Название голоса (например: Мой голос)" class="form-input" style="width:100%; padding:12px; background:rgba(0,0,0,0.2); border:1px solid var(--card-border); border-radius:12px; color:var(--text-primary);">
@@ -1104,6 +1199,16 @@
                     <button class="btn-generate" onclick="submitClone()">
                         <i data-lucide="plus-circle"></i>Создать клон голоса
                     </button>
+                `;
+                lucide.createIcons();
+            } else {
+                cloningWorkspace.innerHTML = `
+                    <div class="lock-overlay">
+                        <div class="lock-icon"><i data-lucide="lock"></i></div>
+                        <h3 style="font-size:16px; margin-bottom:8px;">Доступно в Creator, Pro, Scale и Business тарифах</h3>
+                        <p style="font-size:12px; color:var(--text-secondary); margin-bottom:20px; line-height:1.4;">Клонирование голоса позволяет загрузить 1 минуту записи и создавать аудио озвучку вашим собственным голосом.</p>
+                        <button class="btn-generate" onclick="switchTab('pricing')">Купить Creator тариф</button>
+                    </div>
                 `;
                 lucide.createIcons();
             }
@@ -1131,7 +1236,37 @@
                 return;
             }
             
-            showToast('Клонирование голоса временно автоматизируется на сервере...', 'success');
+            showModal('Идет клонирование голоса через ElevenLabs...');
+            
+            const formData = new FormData();
+            formData.append('name', name);
+            formData.append('file', fileInput.files[0]);
+            
+            const userId = localStorage.getItem('voice_user_id') || '755843448';
+            try {
+                const resp = await fetch(`/api/voice/clone?user_id=${userId}`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await resp.json();
+                hideModal();
+                
+                if (data.status === 'success') {
+                    showToast('Голос успешно клонирован!', 'success');
+                    document.getElementById('clone-name').value = '';
+                    fileInput.value = '';
+                    document.getElementById('clone-file-label').textContent = 'Выбрать аудиофайл';
+                    
+                    await initApp();
+                    switchTab('tts');
+                } else {
+                    showToast(data.error || 'Ошибка клонирования голоса', 'error');
+                }
+            } catch (err) {
+                hideModal();
+                showToast('Ошибка сети при клонировании', 'error');
+            }
         }
 
         async function buySubscription(subType) {
