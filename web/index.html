@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>ElevenLabs Voice AI - Синтез речи</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --bg-dark: #070514;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --card-border: rgba(255, 255, 255, 0.07);
+            --accent-glow: rgba(124, 58, 237, 0.35);
+            --accent-gradient: linear-gradient(135deg, #7c3aed 0%, #3b82f6 100%);
+            --accent-color: #7c3aed;
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+            --success-color: #10b981;
+            --font-display: 'Outfit', sans-serif;
+            --font-body: 'Inter', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding-bottom: 80px;
+            background-image: 
+                radial-gradient(at 10% 20%, rgba(124, 58, 237, 0.12) 0px, transparent 50%),
+                radial-gradient(at 90% 80%, rgba(59, 130, 246, 0.12) 0px, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* --- Header --- */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--accent-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 18px;
+            box-shadow: 0 4px 15px var(--accent-glow);
+        }
+
+        .user-details h3 {
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .user-details span {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .tier-badge {
+            background: rgba(124, 58, 237, 0.15);
+            border: 1px solid rgba(124, 58, 237, 0.3);
+            color: #c084fc;
+            padding: 4px 10px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* --- Character Limits Card --- */
+        .limit-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--card-border);
+            padding: 16px;
+            border-radius: 20px;
+            margin-bottom: 25px;
+            backdrop-filter: blur(10px);
+        }
+
+        .limit-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+        .limit-bar-bg {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .limit-bar-fill {
+            height: 100%;
+            background: var(--accent-gradient);
+            width: 100%;
+            transition: width 0.5s ease;
+        }
+
+        /* --- Main Workspace / Tabs --- */
+        .tabs {
+            display: flex;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--card-border);
+            padding: 4px;
+            border-radius: 14px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .tab-btn.active {
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text-primary);
+        }
+
+        .view-section {
+            display: none;
+        }
+
+        .view-section.active {
+            display: block;
+        }
+
+        /* --- TTS Form Elements --- */
+        .workspace-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--card-border);
+            padding: 20px;
+            border-radius: 24px;
+            backdrop-filter: blur(10px);
+            margin-bottom: 25px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 120px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 14px;
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            font-size: 13px;
+            resize: none;
+            outline: none;
+            margin-bottom: 10px;
+            transition: border-color 0.25s ease;
+        }
+
+        textarea:focus {
+            border-color: rgba(124, 58, 237, 0.5);
+        }
+
+        .char-counter {
+            text-align: right;
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+
+        .section-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+
+        /* --- Voice Cards Grid --- */
+        .voice-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .voice-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .voice-card:hover, .voice-card.selected {
+            background: rgba(124, 58, 237, 0.06);
+            border-color: rgba(124, 58, 237, 0.4);
+        }
+
+        .voice-card.selected {
+            box-shadow: inset 0 0 10px rgba(124, 58, 237, 0.15);
+        }
+
+        .voice-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .voice-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .voice-details {
+            min-width: 0;
+        }
+
+        .voice-name {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .voice-desc {
+            font-size: 10px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .play-preview-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .play-preview-btn:hover {
+            background: var(--accent-gradient);
+            color: #000;
+        }
+
+        /* --- Generate Button --- */
+        .btn-generate {
+            width: 100%;
+            padding: 16px;
+            background: var(--accent-gradient);
+            border: none;
+            border-radius: 18px;
+            color: #000;
+            font-family: var(--font-display);
+            font-weight: 800;
+            font-size: 15px;
+            cursor: pointer;
+            box-shadow: 0 4px 20px var(--accent-glow);
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-generate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(124, 58, 237, 0.5);
+        }
+
+        .btn-generate:active {
+            transform: translateY(0);
+        }
+
+        /* --- History / Player Section --- */
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .history-card {
+            background: rgba(255, 255, 255, 0.01);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 14px;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .history-text {
+            font-size: 12px;
+            line-height: 1.4;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            font-style: italic;
+        }
+
+        /* --- Custom Audio Player --- */
+        .custom-player {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 8px 12px;
+            border-radius: 10px;
+        }
+
+        .player-play-btn {
+            background: var(--accent-gradient);
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            cursor: pointer;
+        }
+
+        .player-timeline-bg {
+            flex: 1;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .player-timeline-fill {
+            height: 100%;
+            background: var(--accent-gradient);
+            width: 0%;
+            border-radius: 2px;
+        }
+
+        .player-time {
+            font-size: 10px;
+            font-family: var(--font-display);
+            color: var(--text-secondary);
+        }
+
+        .player-download {
+            color: var(--text-secondary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .player-download:hover {
+            color: var(--text-primary);
+        }
+
+        /* --- Pricing Section --- */
+        .pricing-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .pricing-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--card-border);
+            border-radius: 24px;
+            padding: 24px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .pricing-card.premium {
+            border-color: rgba(124, 58, 237, 0.5);
+            background: radial-gradient(circle at top right, rgba(124, 58, 237, 0.1), transparent);
+        }
+
+        .pricing-card.premium::after {
+            content: "POPULAR";
+            position: absolute;
+            top: 15px;
+            right: -25px;
+            background: var(--accent-gradient);
+            color: #000;
+            font-size: 8px;
+            font-weight: 800;
+            padding: 4px 25px;
+            transform: rotate(45deg);
+        }
+
+        .pricing-title {
+            font-family: var(--font-display);
+            font-size: 20px;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .pricing-price {
+            font-family: var(--font-display);
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+        }
+
+        .pricing-price span {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .pricing-features {
+            text-align: left;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .pricing-feature-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .pricing-feature-item i {
+            color: var(--success-color);
+        }
+
+        .btn-pricing-buy {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .pricing-card.premium .btn-pricing-buy {
+            background: var(--accent-gradient);
+            color: #000;
+            border: none;
+            box-shadow: 0 4px 15px var(--accent-glow);
+        }
+
+        /* --- Cloning View --- */
+        .lock-overlay {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .lock-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: rgba(255, 61, 0, 0.1);
+            border: 1px solid rgba(255, 61, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            color: #ff3d00;
+        }
+
+        /* --- Toast Notifications --- */
+        .toast {
+            position: fixed;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(15, 12, 30, 0.95);
+            border: 1px solid var(--card-border);
+            padding: 12px 24px;
+            border-radius: 14px;
+            z-index: 9999;
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* --- Loading Modal --- */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(7, 5, 20, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .spinner-container {
+            text-align: center;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255, 255, 255, 0.05);
+            border-top: 3px solid var(--accent-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="user-info">
+                <div class="avatar" id="user-avatar-initial">U</div>
+                <div class="user-details">
+                    <h3 id="user-name">User</h3>
+                    <span id="user-tier">Бесплатный</span>
+                </div>
+            </div>
+            <div class="tier-badge" id="user-sub-badge">Free</div>
+        </header>
+
+        <!-- Limit Card -->
+        <div class="limit-card">
+            <div class="limit-info">
+                <span>Лимит символов:</span>
+                <strong id="limit-text">5 000 / 5 000</strong>
+            </div>
+            <div class="limit-bar-bg">
+                <div class="limit-bar-fill" id="limit-bar-fill"></div>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('tts')">
+                <i data-lucide="mic"></i>Озвучка
+            </button>
+            <button class="tab-btn" onclick="switchTab('pricing')">
+                <i data-lucide="zap"></i>Тарифы
+            </button>
+            <button class="tab-btn" onclick="switchTab('cloning')">
+                <i data-lucide="copy"></i>Клоны
+            </button>
+        </div>
+
+        <!-- VIEW: Text To Speech -->
+        <section id="view-tts" class="view-section active">
+            <div class="workspace-card">
+                <textarea id="tts-textarea" placeholder="Введите ваш текст для озвучки..." oninput="updateCharCount()"></textarea>
+                <div class="char-counter" id="char-counter">0 / 5000</div>
+
+                <div class="section-label">Выберите голос</div>
+                <div class="voice-grid" id="voice-grid">
+                    <!-- Loaded dynamically -->
+                </div>
+
+                <button class="btn-generate" onclick="generateAudio()">
+                    <i data-lucide="audio-lines"></i>Сгенерировать озвучку
+                </button>
+            </div>
+
+            <div class="section-label">История генераций</div>
+            <div class="history-list" id="history-list">
+                <!-- Loaded dynamically -->
+            </div>
+        </section>
+
+        <!-- VIEW: Pricing Plans -->
+        <section id="view-pricing" class="view-section">
+            <div class="pricing-list">
+                <!-- Starter Plan -->
+                <div class="pricing-card">
+                    <div class="pricing-title">Starter Plan</div>
+                    <div class="pricing-price">350 ₽<span> / мес</span></div>
+                    <div class="pricing-features">
+                        <div class="pricing-feature-item">
+                            <i data-lucide="check-circle-2"></i>
+                            <span>30 000 символов озвучки в месяц</span>
+                        </div>
+                        <div class="pricing-feature-item">
+                            <i data-lucide="check-circle-2"></i>
+                            <span>Стандартные премиум-голоса</span>
+                        </div>
+                        <div class="pricing-feature-item">
+                            <i data-lucide="check-circle-2"></i>
+                            <span>Ускоренное время генерации</span>
+                        </div>
+                    </div>
+                    <button class="btn-pricing-buy" onclick="buySubscription('starter')">Активировать за 350₽</button>
+                </div>
+
+                <!-- Pro Plan -->
+                <div class="pricing-card premium">
+                    <div class="pricing-title">Pro Plan</div>
+                    <div class="pricing-price">850 ₽<span> / мес</span></div>
+                    <div class="pricing-features">
+                        <div class="pricing-feature-item">
+                            <i data-lucide="check-circle-2"></i>
+                            <span>100 000 символов озвучки в месяц</span>
+                        </div>
+                        <div class="pricing-feature-item">
+                            <i data-lucide="check-circle-2"></i>
+                            <span>Клонирование собственного голоса</span>
+                        </div>
+                        <div class="pricing-feature-item">
+                            <i data-lucide="check-circle-2"></i>
+                            <span>Все голоса ElevenLabs</span>
+                        </div>
+                        <div class="pricing-feature-item">
+                            <i data-lucide="check-circle-2"></i>
+                            <span>Максимальный приоритет обработки</span>
+                        </div>
+                    </div>
+                    <button class="btn-pricing-buy" onclick="buySubscription('pro')">Активировать за 850₽</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW: Voice Cloning -->
+        <section id="view-cloning" class="view-section">
+            <div class="workspace-card" id="cloning-workspace">
+                <!-- Will lock/unlock dynamically depending on sub_type -->
+                <div class="lock-overlay">
+                    <div class="lock-icon"><i data-lucide="lock"></i></div>
+                    <h3 style="font-size:16px; margin-bottom:8px;">Доступно только в Pro подписке</h3>
+                    <p style="font-size:12px; color:var(--text-secondary); margin-bottom:20px; line-height:1.4;">Клонирование голоса позволяет загрузить 1 минуту записи и создавать аудио озвучку вашим собственным голосом.</p>
+                    <button class="btn-generate" onclick="switchTab('pricing')">Купить Pro тариф</button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <i data-lucide="info" style="color: var(--accent-color); width: 16px; height: 16px;"></i>
+        <span id="toast-text">Сообщение</span>
+    </div>
+
+    <!-- Loading Modal -->
+    <div class="modal" id="modal">
+        <div class="spinner-container">
+            <div class="spinner"></div>
+            <div id="modal-text" style="font-size: 13px; font-weight: 600;">Озвучиваем текст...</div>
+        </div>
+    </div>
+
+    <script>
+        // State
+        const state = {
+            user: null,
+            voices: [],
+            selectedVoiceId: null,
+            maxCharLimit: 5000,
+            activePaymentInvoice: null
+        };
+
+        // Initialize App
+        (async function init() {
+            lucide.createIcons();
+            
+            // Get user_id from query params
+            const urlParams = new URLSearchParams(window.location.search);
+            const user_id = urlParams.get('user_id');
+            const username = urlParams.get('username') || 'User';
+            
+            if (user_id) {
+                localStorage.setItem('voice_user_id', user_id);
+                localStorage.setItem('voice_username', username);
+            }
+            
+            await fetchInit();
+        })();
+
+        async function fetchInit() {
+            const userId = localStorage.getItem('voice_user_id') || '755843448';
+            try {
+                const resp = await fetch(`/api/init?user_id=${userId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const data = await resp.json();
+                if (data.status === 'success') {
+                    state.user = data.user;
+                    state.voices = data.voices;
+                    
+                    // Render UI elements
+                    renderHeader();
+                    renderLimitBar();
+                    renderVoices();
+                    renderHistory(data.history);
+                    renderCloningPortal();
+                } else {
+                    showToast('Ошибка загрузки данных', 'error');
+                }
+            } catch (err) {
+                showToast('Ошибка подключения к серверу', 'error');
+            }
+        }
+
+        function renderHeader() {
+            if (!state.user) return;
+            document.getElementById('user-name').textContent = '@' + state.user.username;
+            document.getElementById('user-avatar-initial').textContent = state.user.username.charAt(0).toUpperCase();
+            
+            let tierName = 'Бесплатный';
+            let badgeName = 'Free';
+            if (state.user.sub_type === 'starter') {
+                tierName = 'Starter';
+                badgeName = 'Starter';
+            } else if (state.user.sub_type === 'pro') {
+                tierName = 'Pro Plan';
+                badgeName = 'Pro';
+            }
+            
+            document.getElementById('user-tier').textContent = tierName;
+            document.getElementById('user-sub-badge').textContent = badgeName;
+        }
+
+        function renderLimitBar() {
+            if (!state.user) return;
+            let maxLimit = 5000;
+            if (state.user.sub_type === 'starter') maxLimit = 30000;
+            if (state.user.sub_type === 'pro') maxLimit = 100000;
+            
+            state.maxCharLimit = maxLimit;
+            
+            document.getElementById('limit-text').textContent = `${state.user.char_limit.toLocaleString()} / ${maxLimit.toLocaleString()}`;
+            const percentage = (state.user.char_limit / maxLimit) * 100;
+            document.getElementById('limit-bar-fill').style.width = percentage + '%';
+            
+            // Set max text length
+            document.getElementById('tts-textarea').maxLength = state.user.char_limit;
+            updateCharCount();
+        }
+
+        function renderVoices() {
+            const grid = document.getElementById('voice-grid');
+            grid.innerHTML = '';
+            
+            state.voices.forEach((v, index) => {
+                const card = document.createElement('div');
+                card.className = `voice-card ${index === 0 ? 'selected' : ''}`;
+                card.id = `voice-${v.id}`;
+                if (index === 0) state.selectedVoiceId = v.id;
+                
+                card.onclick = () => selectVoice(v.id);
+                
+                const emoji = v.gender === 'female' ? '🎧' : '🎙️';
+                
+                card.innerHTML = `
+                    <div class="voice-meta">
+                        <div class="voice-icon">${emoji}</div>
+                        <div class="voice-details">
+                            <div class="voice-name">${v.name}</div>
+                            <div class="voice-desc">${v.desc}</div>
+                        </div>
+                    </div>
+                    <button class="play-preview-btn" onclick="playVoicePreview(event, '${v.id}')">
+                        <i data-lucide="play" style="width: 14px; height: 14px;"></i>
+                    </button>
+                `;
+                grid.appendChild(card);
+            });
+            lucide.createIcons();
+        }
+
+        let activePreviewAudio = null;
+        let activePreviewBtn = null;
+
+        function playVoicePreview(event, voiceId) {
+            event.stopPropagation(); // Stop selection trigger
+            
+            const btn = event.currentTarget;
+            
+            // Preview links or a placeholder audio
+            // Standard ElevenLabs voice preview files
+            const previewUrls = {
+                "21m0aC4C9KstEPqMsrxW": "https://api.elevenlabs.io/v1/voices/21m0aC4C9KstEPqMsrxW/previews",
+                "EXAVITQu4vr4xnSDxMaL": "https://api.elevenlabs.io/v1/voices/EXAVITQu4vr4xnSDxMaL/previews",
+                "ErXwobaYiN019atkyvjV": "https://api.elevenlabs.io/v1/voices/ErXwobaYiN019atkyvjV/previews",
+                "pNInz6obpgq5epa5UR3f": "https://api.elevenlabs.io/v1/voices/pNInz6obpgq5epa5UR3f/previews",
+                "AZnzlk1XvdvUeBnXmlld": "https://api.elevenlabs.io/v1/voices/AZnzlk1XvdvUeBnXmlld/previews"
+            };
+            
+            const url = previewUrls[voiceId];
+            if (!url) return;
+            
+            if (activePreviewAudio) {
+                activePreviewAudio.pause();
+                activePreviewBtn.innerHTML = '<i data-lucide="play" style="width: 14px; height: 14px;"></i>';
+                lucide.createIcons();
+                if (activePreviewBtn === btn) {
+                    activePreviewAudio = null;
+                    activePreviewBtn = null;
+                    return;
+                }
+            }
+            
+            const audio = new Audio(url);
+            audio.play();
+            btn.innerHTML = '<i data-lucide="square" style="width: 14px; height: 14px; fill: #000;"></i>';
+            lucide.createIcons();
+            
+            activePreviewAudio = audio;
+            activePreviewBtn = btn;
+            
+            audio.onended = () => {
+                btn.innerHTML = '<i data-lucide="play" style="width: 14px; height: 14px;"></i>';
+                lucide.createIcons();
+                activePreviewAudio = null;
+                activePreviewBtn = null;
+            };
+        }
+
+        function selectVoice(voiceId) {
+            document.querySelectorAll('.voice-card').forEach(c => c.classList.remove('selected'));
+            document.getElementById(`voice-${voiceId}`).classList.add('selected');
+            state.selectedVoiceId = voiceId;
+        }
+
+        function updateCharCount() {
+            const textarea = document.getElementById('tts-textarea');
+            const count = textarea.value.length;
+            const limit = textarea.maxLength;
+            document.getElementById('char-counter').textContent = `${count.toLocaleString()} / ${limit.toLocaleString()}`;
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+            
+            // Set tab btn active
+            const btnIdx = { tts: 0, pricing: 1, cloning: 2 }[tabName];
+            document.querySelectorAll('.tab-btn')[btnIdx].classList.add('active');
+            
+            // Show view
+            document.getElementById(`view-${tabName}`).classList.add('active');
+        }
+
+        async function generateAudio() {
+            const text = document.getElementById('tts-textarea').value.trim();
+            if (!text) {
+                showToast('Введите текст для озвучки!', 'error');
+                return;
+            }
+            
+            showModal('Синтезируем текст через ElevenLabs...');
+            
+            const userId = localStorage.getItem('voice_user_id') || '755843448';
+            try {
+                const resp = await fetch(`/api/generate?user_id=${userId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        text: text,
+                        voice_id: state.selectedVoiceId
+                    })
+                });
+                
+                const data = await resp.json();
+                hideModal();
+                
+                if (data.status === 'success') {
+                    showToast('Текст успешно озвучен!', 'success');
+                    document.getElementById('tts-textarea').value = '';
+                    
+                    // Reload data
+                    await fetchInit();
+                } else {
+                    showToast(data.error || 'Ошибка при генерации', 'error');
+                }
+            } catch (err) {
+                hideModal();
+                showToast('Ошибка соединения с сервером', 'error');
+            }
+        }
+
+        function renderHistory(history) {
+            const container = document.getElementById('history-list');
+            container.innerHTML = '';
+            
+            if (!history || history.length === 0) {
+                container.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-secondary); font-size:12px;">Здесь будут ваши озвученные тексты</div>';
+                return;
+            }
+            
+            history.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'history-card';
+                
+                // Get Voice Name
+                const voiceObj = state.voices.find(v => v.id === item.voice_id);
+                const voiceName = voiceObj ? voiceObj.name : 'Голос';
+                
+                card.innerHTML = `
+                    <div class="history-header">
+                        <span>🎙️ ${voiceName}</span>
+                        <span>${item.created_at}</span>
+                    </div>
+                    <div class="history-text">"${item.text}"</div>
+                    <div class="custom-player" id="player-${item.id}">
+                        <button class="player-play-btn" onclick="toggleCustomPlayer(this, '${item.audio_path}')">
+                            <i data-lucide="play" style="width: 14px; height: 14px;"></i>
+                        </button>
+                        <div class="player-timeline-bg" onclick="seekPlayer(event, '${item.id}')">
+                            <div class="player-timeline-fill" id="fill-${item.id}"></div>
+                        </div>
+                        <span class="player-time" id="time-${item.id}">0:00</span>
+                        <a href="${item.audio_path}" download class="player-download">
+                            <i data-lucide="download" style="width: 16px; height: 16px;"></i>
+                        </a>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+            lucide.createIcons();
+        }
+
+        // Custom audio players state
+        let activeAudio = null;
+        let activePlayBtn = null;
+        let activeTimelineInterval = null;
+
+        function toggleCustomPlayer(btn, audioPath) {
+            if (activeAudio) {
+                activeAudio.pause();
+                clearInterval(activeTimelineInterval);
+                activePlayBtn.innerHTML = '<i data-lucide="play" style="width: 14px; height: 14px;"></i>';
+                
+                if (activePlayBtn === btn) {
+                    activeAudio = null;
+                    activePlayBtn = null;
+                    lucide.createIcons();
+                    return;
+                }
+            }
+            
+            const fillId = btn.nextElementSibling.firstElementChild.id;
+            const timeId = btn.nextElementSibling.nextElementSibling.id;
+            const fillEl = document.getElementById(fillId);
+            const timeEl = document.getElementById(timeId);
+            
+            const audio = new Audio(audioPath);
+            audio.play();
+            btn.innerHTML = '<i data-lucide="pause" style="width: 14px; height: 14px;"></i>';
+            lucide.createIcons();
+            
+            activeAudio = audio;
+            activePlayBtn = btn;
+            
+            activeTimelineInterval = setInterval(() => {
+                if (audio.duration) {
+                    const percentage = (audio.currentTime / audio.duration) * 100;
+                    fillEl.style.width = percentage + '%';
+                    
+                    const min = Math.floor(audio.currentTime / 60);
+                    const sec = Math.floor(audio.currentTime % 60).toString().padStart(2, '0');
+                    timeEl.textContent = `${min}:${sec}`;
+                }
+            }, 100);
+            
+            audio.onended = () => {
+                btn.innerHTML = '<i data-lucide="play" style="width: 14px; height: 14px;"></i>';
+                fillEl.style.width = '0%';
+                timeEl.textContent = '0:00';
+                lucide.createIcons();
+                clearInterval(activeTimelineInterval);
+                activeAudio = null;
+                activePlayBtn = null;
+            };
+        }
+
+        function seekPlayer(event, itemId) {
+            // Seek logic if active
+            if (activeAudio && activePlayBtn.parentElement.id === `player-${itemId}`) {
+                const rect = event.currentTarget.getBoundingClientRect();
+                const clickX = event.clientX - rect.left;
+                const width = rect.width;
+                const percentage = clickX / width;
+                activeAudio.currentTime = percentage * activeAudio.duration;
+            }
+        }
+
+        function renderCloningPortal() {
+            const cloningWorkspace = document.getElementById('cloning-workspace');
+            if (state.user.sub_type === 'pro') {
+                cloningWorkspace.innerHTML = `
+                    <div class="section-label">Создать клон голоса</div>
+                    <div style="font-size:12px; line-height:1.5; color:var(--text-secondary); margin-bottom:15px;">
+                        Загрузите аудиозапись (длительностью около 1 минуты) человека, чей голос вы хотите клонировать. Голос должен быть чистым, без посторонних шумов и музыки.
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:20px;">
+                        <input type="text" id="clone-name" placeholder="Название голоса (например: Мой голос)" class="form-input" style="width:100%; padding:12px; background:rgba(0,0,0,0.2); border:1px solid var(--card-border); border-radius:12px; color:var(--text-primary);">
+                        <input type="file" id="clone-file" accept="audio/*" style="display:none;" onchange="updateFileLabel(this)">
+                        <button class="btn-pricing-buy" onclick="document.getElementById('clone-file').click()" id="clone-file-btn" style="background:rgba(255,255,255,0.02); display:flex; align-items:center; justify-content:center; gap:8px;">
+                            <i data-lucide="upload-cloud"></i>
+                            <span id="clone-file-label">Выбрать аудиофайл</span>
+                        </button>
+                    </div>
+                    <button class="btn-generate" onclick="submitClone()">
+                        <i data-lucide="plus-circle"></i>Создать клон голоса
+                    </button>
+                `;
+                lucide.createIcons();
+            }
+        }
+
+        function updateFileLabel(input) {
+            const label = document.getElementById('clone-file-label');
+            if (input.files && input.files[0]) {
+                label.textContent = `Выбран файл: ${input.files[0].name}`;
+            } else {
+                label.textContent = 'Выбрать аудиофайл';
+            }
+        }
+
+        async function submitClone() {
+            const name = document.getElementById('clone-name').value.trim();
+            const fileInput = document.getElementById('clone-file');
+            
+            if (!name) {
+                showToast('Введите название для клона голоса', 'error');
+                return;
+            }
+            if (!fileInput.files || !fileInput.files[0]) {
+                showToast('Выберите аудиофайл для клонирования', 'error');
+                return;
+            }
+            
+            showToast('Клонирование голоса временно автоматизируется на сервере...', 'success');
+        }
+
+        async function buySubscription(subType) {
+            showModal('Генерируем счет на оплату в CryptoPay...');
+            
+            const userId = localStorage.getItem('voice_user_id') || '755843448';
+            try {
+                const resp = await fetch(`/api/payments/create?user_id=${userId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sub_type: subType })
+                });
+                
+                const data = await resp.json();
+                hideModal();
+                
+                if (data.status === 'success' && data.pay_url) {
+                    state.activePaymentInvoice = data.invoice_id;
+                    
+                    // Open checkout URL
+                    window.open(data.pay_url, '_blank');
+                    
+                    showModal('Счет открыт во внешней вкладке. Ожидаем оплату...', true);
+                    
+                    // Start checking loop
+                    startPaymentCheckLoop(data.invoice_id);
+                } else {
+                    showToast(data.error || 'Ошибка создания счета', 'error');
+                }
+            } catch (err) {
+                hideModal();
+                showToast('Ошибка при создании счета', 'error');
+            }
+        }
+
+        let paymentCheckInterval = null;
+
+        function startPaymentCheckLoop(invoiceId) {
+            if (paymentCheckInterval) clearInterval(paymentCheckInterval);
+            
+            const userId = localStorage.getItem('voice_user_id') || '755843448';
+            paymentCheckInterval = setInterval(async () => {
+                try {
+                    const resp = await fetch(`/api/payments/check?user_id=${userId}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ invoice_id: invoiceId })
+                    });
+                    
+                    const data = await resp.json();
+                    if (data.status === 'paid') {
+                        clearInterval(paymentCheckInterval);
+                        hideModal();
+                        showToast('Подписка успешно активирована!', 'success');
+                        await fetchInit();
+                    } else if (data.status === 'expired') {
+                        clearInterval(paymentCheckInterval);
+                        hideModal();
+                        showToast('Счет просрочен или отменен', 'error');
+                    }
+                } catch (err) {
+                    console.error('Payment status check failed:', err);
+                }
+            }, 3000);
+        }
+
+        // Helpers
+        function showToast(text, type = 'info') {
+            const toast = document.getElementById('toast');
+            const toastText = document.getElementById('toast-text');
+            
+            toastText.textContent = text;
+            
+            // Set toast color depending on type
+            if (type === 'error') {
+                toast.style.borderColor = 'rgba(255, 61, 0, 0.4)';
+                toast.style.background = 'rgba(15, 12, 30, 0.98)';
+            } else if (type === 'success') {
+                toast.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+                toast.style.background = 'rgba(15, 12, 30, 0.98)';
+            } else {
+                toast.style.borderColor = 'var(--card-border)';
+            }
+            
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        function showModal(text, persist = false) {
+            const modal = document.getElementById('modal');
+            document.getElementById('modal-text').textContent = text;
+            modal.classList.add('show');
+            
+            if (!persist) {
+                // Clicking modal backdrop hides it
+                modal.onclick = hideModal;
+            } else {
+                // If it's active payment check, clicking allows closing checking state
+                modal.onclick = () => {
+                    clearInterval(paymentCheckInterval);
+                    hideModal();
+                };
+            }
+        }
+
+        function hideModal() {
+            document.getElementById('modal').classList.remove('show');
+        }
+    </script>
+</body>
+</html>
