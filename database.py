@@ -65,6 +65,47 @@ def init_db():
         FOREIGN KEY (user_id) REFERENCES users (telegram_id)
     )
     """)
+
+    # Folders table
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS folders (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER,
+        name TEXT,
+        created_at TEXT,
+        FOREIGN KEY (user_id) REFERENCES users (telegram_id)
+    )
+    """)
+
+    # Dictionaries table
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS dictionaries (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER,
+        word TEXT,
+        replacement TEXT,
+        created_at TEXT,
+        FOREIGN KEY (user_id) REFERENCES users (telegram_id)
+    )
+    """)
+
+    # Designed voices table
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS designed_voices (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER,
+        voice_id TEXT UNIQUE,
+        name TEXT,
+        created_at TEXT,
+        FOREIGN KEY (user_id) REFERENCES users (telegram_id)
+    )
+    """)
+
+    # Alter generations table to add folder_id if it does not exist
+    try:
+        cursor.execute("ALTER TABLE generations ADD COLUMN folder_id INTEGER")
+    except sqlite3.OperationalError:
+        pass
     
     conn.commit()
     conn.close()
@@ -134,15 +175,15 @@ def upgrade_subscription(telegram_id, sub_type):
     conn.commit()
     conn.close()
 
-def log_generation(telegram_id, text, voice_id, chars_used, audio_path):
+def log_generation(telegram_id, text, voice_id, chars_used, audio_path, folder_id=None):
     conn = get_db_connection()
     cursor = conn.cursor()
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
     # Record generation
     cursor.execute(
-        "INSERT INTO generations (user_id, text, voice_id, chars_used, audio_path, created_at) VALUES (?, ?, ?, ?, ?, ?)",
-        (telegram_id, text, voice_id, chars_used, audio_path, now)
+        "INSERT INTO generations (user_id, text, voice_id, chars_used, audio_path, folder_id, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        (telegram_id, text, voice_id, chars_used, audio_path, folder_id, now)
     )
     
     # Deduct character limit
@@ -220,3 +261,86 @@ def get_cloned_voices_count(telegram_id):
     count = row[0] if row else 0
     conn.close()
     return count
+
+def add_folder(telegram_id, name):
+    conn = get_db_connection()
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    cursor = conn.cursor()
+    cursor.execute(
+        "INSERT INTO folders (user_id, name, created_at) VALUES (?, ?, ?)",
+        (telegram_id, name, now)
+    )
+    conn.commit()
+    folder_id = cursor.lastrowid
+    conn.close()
+    return folder_id
+
+def get_folders(telegram_id):
+    conn = get_db_connection()
+    rows = conn.execute("SELECT * FROM folders WHERE user_id = ? ORDER BY id DESC", (telegram_id,)).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+def delete_folder(telegram_id, folder_id):
+    conn = get_db_connection()
+    conn.execute("DELETE FROM folders WHERE user_id = ? AND id = ?", (telegram_id, folder_id))
+    # Unassign files in that folder
+    conn.execute("UPDATE generations SET folder_id = NULL WHERE user_id = ? AND folder_id = ?", (telegram_id, folder_id))
+    conn.commit()
+    conn.close()
+
+def assign_generation_to_folder(telegram_id, generation_id, folder_id):
+    conn = get_db_connection()
+    conn.execute(
+        "UPDATE generations SET folder_id = ? WHERE user_id = ? AND id = ?",
+        (folder_id, telegram_id, generation_id)
+    )
+    conn.commit()
+    conn.close()
+
+def add_dictionary_word(telegram_id, word, replacement):
+    conn = get_db_connection()
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    cursor = conn.cursor()
+    cursor.execute(
+        "INSERT INTO dictionaries (user_id, word, replacement, created_at) VALUES (?, ?, ?, ?)",
+        (telegram_id, word, replacement, now)
+    )
+    conn.commit()
+    word_id = cursor.lastrowid
+    conn.close()
+    return word_id
+
+def get_dictionary(telegram_id):
+    conn = get_db_connection()
+    rows = conn.execute("SELECT * FROM dictionaries WHERE user_id = ? ORDER BY id DESC", (telegram_id,)).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+def delete_dictionary_word(telegram_id, word_id):
+    conn = get_db_connection()
+    conn.execute("DELETE FROM dictionaries WHERE user_id = ? AND id = ?", (telegram_id, word_id))
+    conn.commit()
+    conn.close()
+
+def add_designed_voice(telegram_id, voice_id, name):
+    conn = get_db_connection()
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    success = False
+    try:
+        conn.execute(
+            "INSERT INTO designed_voices (user_id, voice_id, name, created_at) VALUES (?, ?, ?, ?)",
+            (telegram_id, voice_id, name, now)
+        )
+        conn.commit()
+        success = True
+    except sqlite3.IntegrityError:
+        success = False
+    conn.close()
+    return success
+
+def get_designed_voices(telegram_id):
+    conn = get_db_connection()
+    rows = conn.execute("SELECT * FROM designed_voices WHERE user_id = ? ORDER BY id DESC", (telegram_id,)).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]

@@ -644,23 +644,85 @@
             <button class="tab-btn active" onclick="switchTab('tts')">
                 <i data-lucide="mic"></i>Озвучка
             </button>
-            <button class="tab-btn" onclick="switchTab('pricing')">
-                <i data-lucide="zap"></i>Тарифы
+            <button class="tab-btn" onclick="switchTab('design')">
+                <i data-lucide="sliders"></i>Дизайн
+            </button>
+            <button class="tab-btn" onclick="switchTab('dictionary')">
+                <i data-lucide="book-open"></i>Словарь
             </button>
             <button class="tab-btn" onclick="switchTab('cloning')">
-                <i data-lucide="copy"></i>Клоны
+                <i data-lucide="copy"></i>Клонирование
+            </button>
+            <button class="tab-btn" onclick="switchTab('pricing')">
+                <i data-lucide="zap"></i>Тарифы
             </button>
         </div>
 
         <!-- VIEW: Text To Speech -->
         <section id="view-tts" class="view-section active">
             <div class="workspace-card">
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px;">
+                    <div style="font-size:12px; font-weight:600; color:var(--text-secondary);">Папка проекта:</div>
+                    <div style="display:flex; gap:8px; flex:1; justify-content:flex-end;">
+                        <select id="project-folder-select" style="background:rgba(0,0,0,0.4); color:var(--text-primary); border:1px solid var(--card-border); border-radius:8px; padding:6px 12px; font-size:12px;">
+                            <option value="">Без папки (Все)</option>
+                        </select>
+                        <button class="btn-generate" onclick="promptCreateFolder()" style="margin:0; padding:6px 12px; font-size:11px; display:flex; align-items:center; gap:4px; height:auto; width:auto; border-radius:8px;">
+                            <i data-lucide="plus" style="width:12px; height:12px;"></i>Новая
+                        </button>
+                    </div>
+                </div>
                 <textarea id="tts-textarea" placeholder="Введите ваш текст для озвучки..." oninput="updateCharCount()"></textarea>
                 <div class="char-counter" id="char-counter">0 / 5000</div>
 
                 <div class="section-label">Выберите голос</div>
                 <div class="voice-grid" id="voice-grid">
                     <!-- Loaded dynamically -->
+                </div>
+
+                <!-- Advanced Settings Accordion -->
+                <details style="margin: 15px 0; border: 1px solid var(--card-border); border-radius: 12px; padding: 10px 14px; background: rgba(0,0,0,0.15);">
+                    <summary style="font-size: 13px; font-weight: 600; cursor: pointer; color: var(--text-secondary); user-select: none;">
+                        🎛️ Настройки параметров голоса (Stability, Similarity)
+                    </summary>
+                    <div style="display:flex; flex-direction:column; gap:12px; margin-top:12px; font-size:12px;">
+                        <div>
+                            <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                                <span>Стабильность (Stability):</span>
+                                <span id="val-stability">50%</span>
+                            </div>
+                            <input type="range" id="setting-stability" min="0" max="1" step="0.05" value="0.5" style="width:100%; accent-color:var(--accent-color);" oninput="document.getElementById('val-stability').textContent=Math.round(this.value*100)+'%'">
+                        </div>
+                        <div>
+                            <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                                <span>Сходство (Similarity):</span>
+                                <span id="val-similarity">75%</span>
+                            </div>
+                            <input type="range" id="setting-similarity" min="0" max="1" step="0.05" value="0.75" style="width:100%; accent-color:var(--accent-color);" oninput="document.getElementById('val-similarity').textContent=Math.round(this.value*100)+'%'">
+                        </div>
+                        <div>
+                            <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                                <span>Эмоциональность (Style):</span>
+                                <span id="val-style">0%</span>
+                            </div>
+                            <input type="range" id="setting-style" min="0" max="1" step="0.05" value="0" style="width:100%; accent-color:var(--accent-color);" oninput="document.getElementById('val-style').textContent=Math.round(this.value*100)+'%'">
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px; margin-top:4px;">
+                            <input type="checkbox" id="setting-speaker-boost" checked style="accent-color:var(--accent-color);">
+                            <label for="setting-speaker-boost">Усиление сходства динамика (Speaker Boost)</label>
+                        </div>
+                    </div>
+                </details>
+
+                <div style="margin: 12px 0;">
+                    <div class="section-label" style="margin-bottom:6px;">Наложение фоновой музыки</div>
+                    <select id="bg-music-select" style="width:100%; padding:10px; background:rgba(0,0,0,0.2); border:1px solid var(--card-border); border-radius:12px; color:var(--text-primary); font-size:12px;">
+                        <option value="none">Без музыки</option>
+                        <option value="lofi">Lo-Fi ритмы</option>
+                        <option value="cinematic">Кинематографичная атмосфера</option>
+                        <option value="rain">Звук дождя</option>
+                        <option value="ambient">Космический эмбиент</option>
+                    </select>
                 </div>
 
                 <button class="btn-generate" onclick="generateAudio()">
@@ -802,6 +864,30 @@
                     <p style="font-size:12px; color:var(--text-secondary); margin-bottom:20px; line-height:1.4;">Клонирование голоса позволяет загрузить 1 минуту записи и создавать аудио озвучку вашим собственным голосом.</p>
                     <button class="btn-generate" onclick="switchTab('pricing')">Купить Pro тариф</button>
                 </div>
+        </section>
+
+        <!-- VIEW: Voice Design -->
+        <section id="view-design" class="view-section">
+            <div class="workspace-card" id="design-workspace">
+                <!-- Loaded dynamically -->
+            </div>
+        </section>
+
+        <!-- VIEW: Pronunciation Dictionary -->
+        <section id="view-dictionary" class="view-section">
+            <div class="workspace-card">
+                <div class="section-label">Словарь произношения</div>
+                <div style="font-size:12px; line-height:1.5; color:var(--text-secondary); margin-bottom:15px;">
+                    Настройте правила замены текста перед озвучкой. Например, аббревиатуры или сложные названия брендов (например, замена «AGY» на «эй джи вай»).
+                </div>
+                <div style="display:flex; gap:10px; margin-bottom:20px;">
+                    <input type="text" id="dict-word" placeholder="Слово (например: AGY)" class="form-input" style="flex:1; padding:12px; background:rgba(0,0,0,0.2); border:1px solid var(--card-border); border-radius:12px; color:var(--text-primary);">
+                    <input type="text" id="dict-rep" placeholder="Замена (например: эй джи вай)" class="form-input" style="flex:1; padding:12px; background:rgba(0,0,0,0.2); border:1px solid var(--card-border); border-radius:12px; color:var(--text-primary);">
+                    <button class="btn-generate" onclick="submitDictionaryAdd()" style="margin:0; padding:0 20px; height:auto; width:auto; border-radius:12px;">Добавить</button>
+                </div>
+                <div id="dictionary-list-container">
+                    <!-- Table rendered dynamically -->
+                </div>
             </div>
         </section>
     </div>
@@ -827,7 +913,10 @@
             voices: [],
             selectedVoiceId: null,
             maxCharLimit: 5000,
-            activePaymentInvoice: null
+            activePaymentInvoice: null,
+            folders: [],
+            dictionary: [],
+            rawHistory: []
         };
 
         // Initialize App
@@ -859,13 +948,19 @@
                 if (data.status === 'success') {
                     state.user = data.user;
                     state.voices = data.voices;
+                    state.folders = data.folders || [];
+                    state.dictionary = data.dictionary || [];
+                    state.rawHistory = data.history || [];
                     
                     // Render UI elements
                     renderHeader();
                     renderLimitBar();
                     renderVoices();
-                    renderHistory(data.history);
+                    renderFoldersDropdown();
+                    renderHistory(state.rawHistory);
                     renderCloningPortal();
+                    renderVoiceDesignPortal();
+                    renderDictionary();
                 } else {
                     showToast('Ошибка загрузки данных', 'error');
                 }
@@ -997,13 +1092,14 @@
                 btn.innerHTML = '<i data-lucide="play" style="width: 14px; height: 14px;"></i>';
                 lucide.createIcons();
                 activePreviewAudio = null;
-                activePreviewBtn = null;
+                activePreviewBtn = btn;
             };
         }
 
         function selectVoice(voiceId) {
             document.querySelectorAll('.voice-card').forEach(c => c.classList.remove('selected'));
-            document.getElementById(`voice-${voiceId}`).classList.add('selected');
+            const cardEl = document.getElementById(`voice-${voiceId}`);
+            if (cardEl) cardEl.classList.add('selected');
             state.selectedVoiceId = voiceId;
         }
 
@@ -1014,15 +1110,281 @@
             document.getElementById('char-counter').textContent = `${count.toLocaleString()} / ${limit.toLocaleString()}`;
         }
 
+        function renderFoldersDropdown() {
+            const select = document.getElementById('project-folder-select');
+            const currentVal = select.value;
+            select.innerHTML = '<option value="">Без папки (Все)</option>';
+            state.folders.forEach(f => {
+                const opt = document.createElement('option');
+                opt.value = f.id;
+                opt.textContent = f.name;
+                select.appendChild(opt);
+            });
+            select.value = currentVal;
+            select.onchange = () => renderHistory(state.rawHistory);
+        }
+
+        async function promptCreateFolder() {
+            const name = prompt('Введите название новой папки:');
+            if (!name || !name.trim()) return;
+            
+            showModal('Создаем папку...');
+            const userId = localStorage.getItem('voice_user_id') || '755843448';
+            try {
+                const resp = await fetch(`/api/folders/create?user_id=${userId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: name.trim() })
+                });
+                const data = await resp.json();
+                hideModal();
+                if (data.status === 'success') {
+                    showToast('Папка создана!', 'success');
+                    await fetchInit();
+                } else {
+                    showToast(data.error || 'Ошибка создания папки', 'error');
+                }
+            } catch (err) {
+                hideModal();
+                showToast('Ошибка сети', 'error');
+            }
+        }
+
+        function renderVoiceDesignPortal() {
+            const container = document.getElementById('design-workspace');
+            const subType = state.user.sub_type;
+            const hasCloning = ['creator', 'pro', 'scale', 'business'].includes(subType);
+            
+            if (hasCloning) {
+                container.innerHTML = `
+                    <div class="section-label">Студия конструирования голоса (Voice Design)</div>
+                    <div style="font-size:12px; line-height:1.5; color:var(--text-secondary); margin-bottom:15px;">
+                        ElevenLabs позволяет конструировать новые голоса, задавая желаемые параметры.
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:20px;">
+                        <div>
+                            <label style="font-size:11px; color:var(--text-secondary); display:block; margin-bottom:4px;">Название голоса:</label>
+                            <input type="text" id="design-name" placeholder="Например: Мой новый голос" class="form-input" style="width:100%; padding:12px; background:rgba(0,0,0,0.2); border:1px solid var(--card-border); border-radius:12px; color:var(--text-primary);">
+                        </div>
+                        <div>
+                            <label style="font-size:11px; color:var(--text-secondary); display:block; margin-bottom:4px;">Пол (Gender):</label>
+                            <select id="design-gender" style="width:100%; padding:10px; background:rgba(0,0,0,0.2); border:1px solid var(--card-border); border-radius:12px; color:var(--text-primary); font-size:12px;">
+                                <option value="male">Мужской (Male)</option>
+                                <option value="female">Женский (Female)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size:11px; color:var(--text-secondary); display:block; margin-bottom:4px;">Возраст (Age):</label>
+                            <select id="design-age" style="width:100%; padding:10px; background:rgba(0,0,0,0.2); border:1px solid var(--card-border); border-radius:12px; color:var(--text-primary); font-size:12px;">
+                                <option value="young">Молодой (Young)</option>
+                                <option value="middle_aged">Средний возраст (Middle Aged)</option>
+                                <option value="old">Пожилой (Old)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size:11px; color:var(--text-secondary); display:block; margin-bottom:4px;">Акцент (Accent):</label>
+                            <select id="design-accent" style="width:100%; padding:10px; background:rgba(0,0,0,0.2); border:1px solid var(--card-border); border-radius:12px; color:var(--text-primary); font-size:12px;">
+                                <option value="american">Американский (American)</option>
+                                <option value="british">Британский (British)</option>
+                                <option value="australian">Австралийский (Australian)</option>
+                                <option value="indian">Индийский (Indian)</option>
+                                <option value="african">Африканский (African)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                                <label style="font-size:11px; color:var(--text-secondary);">Сила акцента:</label>
+                                <span id="val-design-strength" style="font-size:11px;">100%</span>
+                            </div>
+                            <input type="range" id="design-strength" min="0.3" max="2.0" step="0.1" value="1.0" style="width:100%; accent-color:var(--accent-color);" oninput="document.getElementById('val-design-strength').textContent=Math.round(this.value*100)+'%'">
+                        </div>
+                    </div>
+                    <button class="btn-generate" onclick="submitVoiceDesign()">
+                        <i data-lucide="sliders"></i>Сконструировать голос
+                    </button>
+                `;
+                lucide.createIcons();
+            } else {
+                container.innerHTML = `
+                    <div class="lock-overlay">
+                        <div class="lock-icon"><i data-lucide="lock"></i></div>
+                        <h3 style="font-size:16px; margin-bottom:8px;">Доступно в Creator, Pro, Scale и Business тарифах</h3>
+                        <p style="font-size:12px; color:var(--text-secondary); margin-bottom:20px; line-height:1.4;">Дизайн голоса позволяет сгенерировать совершенно новый искусственный голос, выбрав его пол, возраст и акцент.</p>
+                        <button class="btn-generate" onclick="switchTab('pricing')">Купить Creator тариф</button>
+                    </div>
+                `;
+                lucide.createIcons();
+            }
+        }
+
+        async function submitVoiceDesign() {
+            const name = document.getElementById('design-name').value.trim();
+            const gender = document.getElementById('design-gender').value;
+            const age = document.getElementById('design-age').value;
+            const accent = document.getElementById('design-accent').value;
+            const strength = document.getElementById('design-strength').value;
+            
+            if (!name) {
+                showToast('Укажите название голоса', 'error');
+                return;
+            }
+            
+            showModal('Конструируем новый голос...');
+            const userId = localStorage.getItem('voice_user_id') || '755843448';
+            try {
+                const resp = await fetch(`/api/voice/design?user_id=${userId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: name,
+                        gender: gender,
+                        age: age,
+                        accent: accent,
+                        accent_strength: parseFloat(strength)
+                    })
+                });
+                const data = await resp.json();
+                hideModal();
+                if (data.status === 'success') {
+                    showToast('Голос успешно создан!', 'success');
+                    await fetchInit();
+                    switchTab('tts');
+                } else {
+                    showToast(data.error || 'Ошибка конструирования голоса', 'error');
+                }
+            } catch (err) {
+                hideModal();
+                showToast('Ошибка сети', 'error');
+            }
+        }
+
+        function renderDictionary() {
+            const container = document.getElementById('dictionary-list-container');
+            if (state.dictionary.length === 0) {
+                container.innerHTML = '<div style="text-align:center; padding:15px; color:var(--text-secondary); font-size:12px;">Ваш словарь пуст</div>';
+                return;
+            }
+            
+            let html = `
+                <table style="width:100%; border-collapse:collapse; font-size:12px; text-align:left; margin-top:10px;">
+                    <thead>
+                        <tr style="border-bottom:1px solid var(--card-border); color:var(--text-secondary);">
+                            <th style="padding:8px 4px;">Слово</th>
+                            <th style="padding:8px 4px;">Произношение</th>
+                            <th style="padding:8px 4px; text-align:right;">Действие</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            state.dictionary.forEach(item => {
+                html += `
+                    <tr style="border-bottom:1px solid rgba(255,255,255,0.02);">
+                        <td style="padding:10px 4px; font-weight:600;">${item.word}</td>
+                        <td style="padding:10px 4px; color:var(--accent-color);">${item.replacement}</td>
+                        <td style="padding:10px 4px; text-align:right;">
+                            <button onclick="deleteDictionaryWord(${item.id})" style="background:transparent; border:none; color:#ef4444; cursor:pointer;" title="Удалить">
+                                <i data-lucide="trash-2" style="width:14px; height:14px;"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+            html += '</tbody></table>';
+            container.innerHTML = html;
+            lucide.createIcons();
+        }
+
+        async function submitDictionaryAdd() {
+            const word = document.getElementById('dict-word').value.trim();
+            const rep = document.getElementById('dict-rep').value.trim();
+            
+            if (!word || !rep) {
+                showToast('Заполните оба поля!', 'error');
+                return;
+            }
+            
+            showModal('Добавляем слово...');
+            const userId = localStorage.getItem('voice_user_id') || '755843448';
+            try {
+                const resp = await fetch(`/api/dictionary/add?user_id=${userId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ word: word, replacement: rep })
+                });
+                const data = await resp.json();
+                hideModal();
+                if (data.status === 'success') {
+                    showToast('Слово успешно добавлено!', 'success');
+                    document.getElementById('dict-word').value = '';
+                    document.getElementById('dict-rep').value = '';
+                    await fetchInit();
+                } else {
+                    showToast(data.error || 'Ошибка добавления', 'error');
+                }
+            } catch (err) {
+                hideModal();
+                showToast('Ошибка сети', 'error');
+            }
+        }
+
+        async function deleteDictionaryWord(wordId) {
+            if (!confirm('Удалить это слово из словаря?')) return;
+            
+            showModal('Удаляем слово...');
+            const userId = localStorage.getItem('voice_user_id') || '755843448';
+            try {
+                const resp = await fetch(`/api/dictionary/delete?user_id=${userId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ word_id: wordId })
+                });
+                const data = await resp.json();
+                hideModal();
+                if (data.status === 'success') {
+                    showToast('Слово удалено!', 'success');
+                    await fetchInit();
+                } else {
+                    showToast(data.error || 'Ошибка удаления', 'error');
+                }
+            } catch (err) {
+                hideModal();
+                showToast('Ошибка сети', 'error');
+            }
+        }
+
+        async function sendToTelegram(audioUrl, type) {
+            showModal('Отправляем файл в Telegram...');
+            const userId = localStorage.getItem('voice_user_id') || '755843448';
+            try {
+                const resp = await fetch(`/api/send_tg?user_id=${userId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ audio_url: audioUrl, type: type })
+                });
+                const data = await resp.json();
+                hideModal();
+                if (data.status === 'success') {
+                    showToast('Аудио отправлено в ваш чат!', 'success');
+                } else {
+                    showToast(data.error || 'Ошибка отправки в TG', 'error');
+                }
+            } catch (err) {
+                hideModal();
+                showToast('Ошибка сети', 'error');
+            }
+        }
+
         function switchTab(tabName) {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
             
-            // Set tab btn active
-            const btnIdx = { tts: 0, pricing: 1, cloning: 2 }[tabName];
-            document.querySelectorAll('.tab-btn')[btnIdx].classList.add('active');
+            const buttons = document.querySelectorAll('.tab-btn');
+            buttons.forEach(btn => {
+                if (btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(`'${tabName}'`)) {
+                    btn.classList.add('active');
+                }
+            });
             
-            // Show view
             document.getElementById(`view-${tabName}`).classList.add('active');
         }
 
@@ -1036,13 +1398,26 @@
             showModal('Синтезируем текст через ElevenLabs...');
             
             const userId = localStorage.getItem('voice_user_id') || '755843448';
+            const folderId = document.getElementById('project-folder-select').value;
+            const stability = document.getElementById('setting-stability').value;
+            const similarity = document.getElementById('setting-similarity').value;
+            const style = document.getElementById('setting-style').value;
+            const speakerBoost = document.getElementById('setting-speaker-boost').checked;
+            const bgMusic = document.getElementById('bg-music-select').value;
+            
             try {
                 const resp = await fetch(`/api/generate?user_id=${userId}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         text: text,
-                        voice_id: state.selectedVoiceId
+                        voice_id: state.selectedVoiceId,
+                        folder_id: folderId || null,
+                        stability: parseFloat(stability),
+                        similarity_boost: parseFloat(similarity),
+                        style: parseFloat(style),
+                        use_speaker_boost: speakerBoost,
+                        bg_music: bgMusic
                     })
                 });
                 
@@ -1052,8 +1427,6 @@
                 if (data.status === 'success') {
                     showToast('Текст успешно озвучен!', 'success');
                     document.getElementById('tts-textarea').value = '';
-                    
-                    // Reload data
                     await fetchInit();
                 } else {
                     showToast(data.error || 'Ошибка при генерации', 'error');
@@ -1068,16 +1441,20 @@
             const container = document.getElementById('history-list');
             container.innerHTML = '';
             
-            if (!history || history.length === 0) {
+            const selectedFolder = document.getElementById('project-folder-select').value;
+            const filtered = selectedFolder 
+                ? history.filter(item => item.folder_id == selectedFolder)
+                : history;
+            
+            if (!filtered || filtered.length === 0) {
                 container.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-secondary); font-size:12px;">Здесь будут ваши озвученные тексты</div>';
                 return;
             }
             
-            history.forEach(item => {
+            filtered.forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'history-card';
                 
-                // Get Voice Name
                 const voiceObj = state.voices.find(v => v.id === item.voice_id);
                 const voiceName = voiceObj ? voiceObj.name : 'Голос';
                 
@@ -1095,9 +1472,18 @@
                             <div class="player-timeline-fill" id="fill-${item.id}"></div>
                         </div>
                         <span class="player-time" id="time-${item.id}">0:00</span>
-                        <a href="${item.audio_path}" download class="player-download">
-                            <i data-lucide="download" style="width: 16px; height: 16px;"></i>
-                        </a>
+                        
+                        <div style="display:flex; gap:8px; margin-left:8px;">
+                            <a href="${item.audio_path}" download class="player-download" title="Скачать">
+                                <i data-lucide="download" style="width: 16px; height: 16px;"></i>
+                            </a>
+                            <button class="player-download" onclick="sendToTelegram('${item.audio_path}', 'audio')" title="Отправить в ТГ как аудио" style="background:transparent; border:none; cursor:pointer;">
+                                <i data-lucide="send" style="width: 16px; height: 16px; color:var(--text-secondary);"></i>
+                            </button>
+                            <button class="player-download" onclick="sendToTelegram('${item.audio_path}', 'voice')" title="Отправить в ТГ как голосовое" style="background:transparent; border:none; cursor:pointer;">
+                                <i data-lucide="mic" style="width: 16px; height: 16px; color:var(--text-secondary);"></i>
+                            </button>
+                        </div>
                     </div>
                 `;
                 container.appendChild(card);
